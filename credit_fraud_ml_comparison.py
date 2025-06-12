@@ -1,5 +1,8 @@
 # 📦 Import necessary libraries
 import pandas as pd
+import os
+import zipfile
+from kaggle.api.kaggle_api_extended import KaggleApi
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -27,10 +30,25 @@ st.title("🔍 Credit Card Fraud Detection with Model Comparison")
 # 🔍 Load dataset
 @st.cache_data
 def load_data():
-    url = "https://drive.google.com/uc?id=1oaklxXLqztMJAqGZoPZbPuJfQ_-rhUfo"
-    df = pd.read_csv(url)
-    ##df = pd.read_csv(r"C:\Users\User\Downloads\Datasets\creditcard.csv")
-    return df
+    # Save secrets to kaggle.json
+    os.makedirs(os.path.expanduser("~/.kaggle"), exist_ok=True)
+    with open(os.path.expanduser("~/.kaggle/kaggle.json"), "w") as f:
+        f.write(f'''{{
+  "username": "{st.secrets["kaggle"]["username"]}",
+  "key": "{st.secrets["kaggle"]["key"]}"
+}}''')
+
+    os.chmod(os.path.expanduser("~/.kaggle/kaggle.json"), 0o600)
+
+    # Initialize Kaggle API
+    api = KaggleApi()
+    api.authenticate()
+
+    # Download dataset (replace with correct dataset slug)
+    dataset_path = "mlg-ulb/creditcardfraud"
+    api.dataset_download_files(dataset_path, path=".", unzip=True)
+
+    return pd.read_csv("creditcard.csv")
 
 df = load_data()
 st.write("### Dataset Preview", df.head())
